@@ -1,15 +1,14 @@
 #include "formula.h"
-
 #include "FormulaAST.h"
 
-#include <algorithm>
-#include <cassert>
 #include <cctype>
 #include <sstream>
+#include <cassert>
+#include <algorithm>
 
 using namespace std::literals;
 
-std::ostream& operator<<(std::ostream& output, FormulaError fe) {
+std::ostream &operator<<(std::ostream &output, FormulaError fe) {
     return output << "#DIV/0!";
 }
 
@@ -17,20 +16,20 @@ namespace {
     class Formula : public FormulaInterface {
     public:
 
-        explicit Formula(std::string expression) try : ast_(ParseFormulaAST(expression)) {}
+        explicit Formula(std::string expression) try: ast_(ParseFormulaAST(expression)) {}
         catch (...) {
             throw FormulaException("formula is syntactically incorrect");
         }
 
-        Value Evaluate(const SheetInterface& sheet) const override {
+        Value Evaluate(const SheetInterface &sheet) const override {
 
             try {
 
-                std::function<double(Position)> args = [&sheet](const Position pos)->double {
+                std::function<double(Position)> args = [&sheet](const Position pos) -> double {
 
                     if (pos.IsValid()) {
 
-                        const auto* cell = sheet.GetCell(pos);
+                        const auto *cell = sheet.GetCell(pos);
                         if (cell) {
 
                             if (std::holds_alternative<double>(cell->GetValue())) {
@@ -68,7 +67,7 @@ namespace {
 
                 return ast_.Execute(args);
 
-            } catch (const FormulaError& evaluate_error) {
+            } catch (const FormulaError &evaluate_error) {
                 return evaluate_error;
             }
         }
@@ -80,9 +79,9 @@ namespace {
             return out.str();
         }
 
-        std::vector<Position> GetReferencedCells() const override {
-            std::vector<Position> cells;
-            for (const auto& cell : ast_.GetCells()) {
+        std::vector <Position> GetReferencedCells() const override {
+            std::vector <Position> cells;
+            for (const auto &cell: ast_.GetCells()) {
 
                 if (cell.IsValid()) {
                     cells.push_back(cell);
@@ -97,8 +96,8 @@ namespace {
         FormulaAST ast_;
     };
 
-}//end namespace
+}
 
-std::unique_ptr<FormulaInterface> ParseFormula(std::string expression) {
+std::unique_ptr <FormulaInterface> ParseFormula(std::string expression) {
     return std::make_unique<Formula>(std::move(expression));
 }

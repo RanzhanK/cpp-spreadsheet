@@ -1,12 +1,11 @@
-#include "sheet.h"
-
 #include "cell.h"
+#include "sheet.h"
 #include "common.h"
 
-#include <algorithm>
-#include <functional>
 #include <iostream>
 #include <optional>
+#include <algorithm>
+#include <functional>
 
 using namespace std::literals;
 
@@ -19,7 +18,7 @@ void Sheet::SetCell(Position pos, std::string text) {
         cells_.resize(std::max(pos.row + 1, int(std::size(cells_))));
         cells_[pos.row].resize(std::max(pos.col + 1, int(std::size(cells_[pos.row]))));
 
-        if (!cells_[pos.row][pos.col]) {cells_[pos.row][pos.col] = std::make_unique<Cell>(*this);}
+        if (!cells_[pos.row][pos.col]) { cells_[pos.row][pos.col] = std::make_unique<Cell>(*this); }
         cells_[pos.row][pos.col]->Set(std::move(text));
 
     } else {
@@ -27,7 +26,7 @@ void Sheet::SetCell(Position pos, std::string text) {
     }
 }
 
-CellInterface* Sheet::GetCell(Position pos) {
+CellInterface *Sheet::GetCell(Position pos) {
 
     if (pos.IsValid()) {
 
@@ -49,7 +48,7 @@ CellInterface* Sheet::GetCell(Position pos) {
     }
 }
 
-const CellInterface* Sheet::GetCell(Position pos) const {
+const CellInterface *Sheet::GetCell(Position pos) const {
     if (pos.IsValid()) {
 
         if (pos.row < int(std::size(cells_)) && pos.col < int(std::size(cells_[pos.row]))) {
@@ -70,7 +69,7 @@ const CellInterface* Sheet::GetCell(Position pos) const {
     }
 }
 
-Cell* Sheet::Get_Cell(Position pos) {
+Cell *Sheet::Get_Cell(Position pos) {
 
     if (pos.IsValid()) {
 
@@ -87,8 +86,8 @@ Cell* Sheet::Get_Cell(Position pos) {
 
 }
 
-const Cell* Sheet::Get_Cell(Position pos) const {
-    const Cell* const_result = Get_Cell(pos);
+const Cell *Sheet::Get_Cell(Position pos) const {
+    const Cell *const_result = Get_Cell(pos);
     return const_result;
 }
 
@@ -137,18 +136,20 @@ Size Sheet::GetPrintableSize() const {
     return size;
 }
 
-void Sheet::PrintValues(std::ostream& output) const {
+void Sheet::PrintValues(std::ostream &output) const {
 
     for (int row = 0; row < GetPrintableSize().rows; ++row) {
 
         for (int col = 0; col < GetPrintableSize().cols; ++col) {
 
-            if (col > 0) {output << '\t';}
+            if (col > 0) { output << '\t'; }
 
             if (col < int(std::size(cells_[row]))) {
 
-                if (cells_[row][col]) {std::visit([&output](const auto& value) {output << value;},
-                                                  cells_[row][col]->GetValue());}
+                if (cells_[row][col]) {
+                    std::visit([&output](const auto &value) { output << value; },
+                               cells_[row][col]->GetValue());
+                }
             }
         }
 
@@ -156,17 +157,17 @@ void Sheet::PrintValues(std::ostream& output) const {
     }
 }
 
-void Sheet::PrintTexts(std::ostream& output) const {
+void Sheet::PrintTexts(std::ostream &output) const {
 
     for (int row = 0; row < GetPrintableSize().rows; ++row) {
 
         for (int col = 0; col < GetPrintableSize().cols; ++col) {
 
-            if (col) {output << '\t';}
+            if (col) { output << '\t'; }
 
             if (col < int(std::size(cells_[row]))) {
 
-                if (cells_[row][col]) {output << cells_[row][col]->GetText();}
+                if (cells_[row][col]) { output << cells_[row][col]->GetText(); }
             }
         }
 
@@ -174,4 +175,4 @@ void Sheet::PrintTexts(std::ostream& output) const {
     }
 }
 
-std::unique_ptr<SheetInterface> CreateSheet() {return std::make_unique<Sheet>();}
+std::unique_ptr <SheetInterface> CreateSheet() { return std::make_unique<Sheet>(); }

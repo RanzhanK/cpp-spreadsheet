@@ -3,21 +3,21 @@
 #include "formula.h"
 #include "test_runner_p.h"
 
-inline std::ostream& operator<<(std::ostream& output, Position pos) {
+inline std::ostream &operator<<(std::ostream &output, Position pos) {
     return output << "(" << pos.row << ", " << pos.col << ")";
 }
 
-inline Position operator"" _pos(const char* str, std::size_t) {
+inline Position operator "" _pos(const char *str, std::size_t) {
     return Position::FromString(str);
 }
 
-inline std::ostream& operator<<(std::ostream& output, Size size) {
+inline std::ostream &operator<<(std::ostream &output, Size size) {
     return output << "(" << size.rows << ", " << size.cols << ")";
 }
 
-inline std::ostream& operator<<(std::ostream& output, const CellInterface::Value& value) {
+inline std::ostream &operator<<(std::ostream &output, const CellInterface::Value &value) {
     std::visit(
-            [&](const auto& x) {
+            [&](const auto &x) {
                 output << x;
             },
             value);
@@ -83,15 +83,15 @@ namespace {
         auto sheet = CreateSheet();
         try {
             sheet->SetCell(Position{-1, 0}, "");
-        } catch (const InvalidPositionException&) {
+        } catch (const InvalidPositionException &) {
         }
         try {
             sheet->GetCell(Position{0, -2});
-        } catch (const InvalidPositionException&) {
+        } catch (const InvalidPositionException &) {
         }
         try {
             sheet->ClearCell(Position{Position::MAX_ROWS, 0});
-        } catch (const InvalidPositionException&) {
+        } catch (const InvalidPositionException &) {
         }
     }
 
@@ -100,7 +100,7 @@ namespace {
 
         auto checkCell = [&](Position pos, std::string text) {
             sheet->SetCell(pos, text);
-            CellInterface* cell = sheet->GetCell(pos);
+            CellInterface *cell = sheet->GetCell(pos);
             ASSERT(cell != nullptr);
             ASSERT_EQUAL(cell->GetText(), text);
             ASSERT_EQUAL(std::get<std::string>(cell->GetValue()), text);
@@ -111,11 +111,11 @@ namespace {
         checkCell("B2"_pos, "Purr");
         checkCell("A3"_pos, "Meow");
 
-        const SheetInterface& constSheet = *sheet;
+        const SheetInterface &constSheet = *sheet;
         ASSERT_EQUAL(constSheet.GetCell("B2"_pos)->GetText(), "Purr");
 
         sheet->SetCell("A3"_pos, "'=escaped");
-        CellInterface* cell = sheet->GetCell("A3"_pos);
+        CellInterface *cell = sheet->GetCell("A3"_pos);
         ASSERT_EQUAL(cell->GetText(), "'=escaped");
         ASSERT_EQUAL(std::get<std::string>(cell->GetValue()), "=escaped");
     }
@@ -252,11 +252,11 @@ namespace {
 
     void TestFormulaInvalidPosition() {
         auto sheet = CreateSheet();
-        auto try_formula = [&](const std::string& formula) {
+        auto try_formula = [&](const std::string &formula) {
             try {
                 sheet->SetCell("A1"_pos, formula);
                 ASSERT(false);
-            } catch (const FormulaException&) {
+            } catch (const FormulaException &) {
                 // we expect this one
             }
         };
@@ -312,7 +312,7 @@ namespace {
         auto isIncorrect = [](std::string expression) {
             try {
                 ParseFormula(std::move(expression));
-            } catch (const FormulaException&) {
+            } catch (const FormulaException &) {
                 return true;
             }
             return false;
@@ -335,7 +335,7 @@ namespace {
         bool caught = false;
         try {
             sheet->SetCell("M6"_pos, "=E2");
-        } catch (const CircularDependencyException&) {
+        } catch (const CircularDependencyException &) {
             caught = true;
         }
 
