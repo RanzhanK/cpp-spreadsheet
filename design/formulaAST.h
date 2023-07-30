@@ -1,14 +1,14 @@
 #pragma once
 
-#include "FormulaLexer.h"
 #include "common.h"
+#include "FormulaLexer.h"
 
-#include <forward_list>
-#include <functional>
 #include <stdexcept>
+#include <functional>
+#include <forward_list>
 
 namespace ASTImpl {
-class Expr;
+    class Expr;
 }
 
 class ParsingError : public std::runtime_error {
@@ -16,19 +16,31 @@ class ParsingError : public std::runtime_error {
 };
 
 class FormulaAST {
+
 public:
-    explicit FormulaAST(std::unique_ptr<ASTImpl::Expr> root_expr);
-    FormulaAST(FormulaAST&&) = default;
-    FormulaAST& operator=(FormulaAST&&) = default;
+    explicit FormulaAST(std::unique_ptr <ASTImpl::Expr> root_expr);
+
+    FormulaAST(FormulaAST &&) = default;
+
+    FormulaAST &operator=(FormulaAST &&) = default;
+
     ~FormulaAST();
 
-    double Execute() const;
-    void Print(std::ostream& out) const;
-    void PrintFormula(std::ostream& out) const;
+    double Execute(const SheetInterface &sheet) const;
+
+    void Print(std::ostream &out) const;
+
+    void PrintFormula(std::ostream &out) const;
+
+    const std::forward_list <Position> &GetCells() const;
+
+    std::forward_list <Position> &GetCells();
 
 private:
-    std::unique_ptr<ASTImpl::Expr> root_expr_;
+    std::unique_ptr <ASTImpl::Expr> root_expr_;
+    std::forward_list <Position> cells_
 };
 
-FormulaAST ParseFormulaAST(std::istream& in);
-FormulaAST ParseFormulaAST(const std::string& in_str);
+FormulaAST ParseFormulaAST(std::istream &in);
+
+FormulaAST ParseFormulaAST(const std::string &in_str);
