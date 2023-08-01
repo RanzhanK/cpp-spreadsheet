@@ -3,8 +3,7 @@
 #include "common.h"
 #include "formula.h"
 
-#include <set>
-#include <stack>
+#include <optional>
 #include <functional>
 #include <unordered_set>
 
@@ -26,71 +25,21 @@ public:
 
     std::vector <Position> GetReferencedCells() const override;
 
-    bool IsReferenced() const;
-
-    void InvalidateAllCache(bool flag);
-
 private:
-    class Impl {
-    public:
-        virtual Value GetValue() const = 0;
+    class Impl;
 
-        virtual std::string GetText() const = 0;
+    class EmptyImpl;
 
-        virtual std::vector <Position> GetReferencedCells() const;
+    class TextImpl;
 
-        virtual bool HasCache();
+    class FormulaImpl;
 
-        virtual void InvalidateCache();
+    bool WouldIntroduceCircularDependency(const Impl &impl) const;
 
-        virtual ~Impl() = default;
-    };
-
-    class EmptyImpl : public Impl {
-    public:
-
-        Value GetValue() const override;
-
-        std::string GetText() const override;
-    };
-
-    class TextImpl : public Impl {
-    public:
-
-        explicit TextImpl(std::string text);
-
-        Value GetValue() const override;
-
-        std::string GetText() const override;
-
-    private:
-        std::string text_;
-    };
-
-    class FormulaImpl : public Impl {
-    public:
-
-        explicit FormulaImpl(std::string text, SheetInterface &sheet);
-
-        Value GetValue() const override;
-
-        std::string GetText() const override;
-
-        std::vector <Position> GetReferencedCells() const override;
-
-        bool HasCache() override;
-
-        void InvalidateCache() override;
-
-    private:
-        mutable std::optional <FormulaInterface::Value> cache_;
-        std::unique_ptr <FormulaInterface> formula_ptr_;
-        SheetInterface &sheet_;
-    };
+    void InvalidateCacheRecursive(bool force = false);
 
     std::unique_ptr <Impl> impl_;
     Sheet &sheet_;
-
-    std::set<Cell *> dependent_cells_;
-    std::set<Cell *> referenced_cells_;
+    std::unordered_set<Cell *> l_nodes_;
+    std::unordered_set<Cell *> r_nodes_;
 };

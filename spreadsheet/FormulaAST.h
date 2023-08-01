@@ -7,6 +7,7 @@
 #include <functional>
 #include <forward_list>
 
+
 namespace ASTImpl {
     class Expr;
 }
@@ -14,6 +15,8 @@ namespace ASTImpl {
 class ParsingError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
+
+using SheetArgs = std::function<double(Position)>;
 
 class FormulaAST {
 public:
@@ -26,7 +29,7 @@ public:
 
     ~FormulaAST();
 
-    double Execute(std::function<double(Position)> &args) const;
+    double Execute(const SheetArgs &) const;
 
     void PrintCells(std::ostream &out) const;
 
@@ -34,9 +37,13 @@ public:
 
     void PrintFormula(std::ostream &out) const;
 
-    std::forward_list <Position> &GetCells() { return cells_; }
+    std::forward_list <Position> &GetCells() {
+        return cells_;
+    }
 
-    const std::forward_list <Position> &GetCells() const { return cells_; }
+    const std::forward_list <Position> &GetCells() const {
+        return cells_;
+    }
 
 private:
     std::unique_ptr <ASTImpl::Expr> root_expr_;

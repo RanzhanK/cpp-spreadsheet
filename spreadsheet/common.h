@@ -42,27 +42,13 @@ public:
         Div0,
     };
 
-    FormulaError(Category category) { category_ = category; }
+    FormulaError(Category category);
 
-    Category GetCategory() const { return category_; }
+    Category GetCategory() const;
 
-    bool operator==(FormulaError rhs) const { return category_ == rhs.category_; }
+    bool operator==(FormulaError rhs) const;
 
-    std::string_view ToString() const {
-
-        switch (category_) {
-
-            case Category::Ref:
-                return "#REF!";
-
-            case Category::Value:
-                return "#VALUE!";
-
-            case Category::Div0:
-                return "#DIV/0!";
-        }
-        return "";
-    }
+    std::string_view ToString() const;
 
 private:
     Category category_;
@@ -87,7 +73,6 @@ public:
 
 class CellInterface {
 public:
-
     using Value = std::variant<std::string, double, FormulaError>;
 
     virtual ~CellInterface() = default;

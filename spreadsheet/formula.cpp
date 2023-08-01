@@ -8,96 +8,106 @@
 
 using namespace std::literals;
 
+FormulaError::FormulaError(Category category) : category_(category) {
+}
+
+FormulaError::Category FormulaError::GetCategory() const {
+    return category_;
+}
+
+bool FormulaError::operator==(FormulaError rhs) const {
+    return category_ == rhs.category_;
+}
+
+std::string_view FormulaError::ToString() const {
+    switch (category_) {
+        case Category::Ref:
+            return "#REF!";
+        case Category::Value:
+            return "#VALUE!";
+        case Category::Div0:
+            return "#DIV/0!";
+    }
+    return "";
+}
+
 std::ostream &operator<<(std::ostream &output, FormulaError fe) {
-    return output << "#DIV/0!";
+    return output << fe.ToString();
 }
 
 namespace {
+
     class Formula : public FormulaInterface {
     public:
-
-        explicit Formula(std::string expression) try: ast_(ParseFormulaAST(expression)) {}
-        catch (...) {
-            throw FormulaException("formula is syntactically incorrect");
+        explicit Formula(std::string expression) try: ast_(ParseFormulaAST(expression)) {
+        }
+        catch (const std::exception &e) {
+            std::throw_with_nested(FormulaException(e.what()));
         }
 
         Value Evaluate(const SheetInterface &sheet) const override {
+            const SheetArgs args = [&sheet](const Position p) -> double {
+                if (!p.IsValid()) {
+                    throw FormulaError(FormulaError::Category::Ref);
+                }
+                const auto *cell = sheet.GetCell(p);
+                if (!cell) {
+                    return 0;
+                }
+                if (std::holds_alternative<double>(cell->GetValue())) {
+                    return std::get<double>(cell->GetValue());
+                }
+
+                if (std::holds_alternative<std::string>(cell->GetValue())) {
+                    auto value = std::get<std::string>(cell->GetValue());
+                    double result = 0;
+                    if (!value.empty()) {
+                        std::istringstream in(value);
+                        if (!(in >> result) || !in.eof()) {
+                            throw FormulaError(FormulaError::Category::Value);
+                        }
+                    }
+                    return result;
+                }
+                throw FormulaError(std::get<FormulaError>(cell->GetValue()));
+            };
 
             try {
-
-                std::function<double(Position)> args = [&sheet](const Position pos) -> double {
-
-                    if (pos.IsValid()) {
-
-                        const auto *cell = sheet.GetCell(pos);
-                        if (cell) {
-
-                            if (std::holds_alternative<double>(cell->GetValue())) {
-                                return std::get<double>(cell->GetValue());
-
-                            } else if (std::holds_alternative<std::string>(cell->GetValue())) {
-
-                                auto str_value = std::get<std::string>(cell->GetValue());
-                                if (str_value != "") {
-                                    std::istringstream input(str_value);
-                                    double num = 0.0;
-
-                                    if (input.eof() && input >> num) {
-                                        return num;
-                                    } else {
-                                        throw FormulaError(FormulaError::Category::Value);
-                                    }
-
-                                } else {
-                                    return 0.0;
-                                }
-
-                            } else {
-                                throw FormulaError(std::get<FormulaError>(cell->GetValue()));
-                            }
-
-                        } else {
-                            return 0.0;
-                        }
-
-                    } else {
-                        throw FormulaError(FormulaError::Category::Ref);
-                    }
-                };
-
                 return ast_.Execute(args);
-
-            } catch (const FormulaError &evaluate_error) {
-                return evaluate_error;
             }
-        }
-
-        std::string GetExpression() const override {
-            std::ostringstream out;
-            ast_.PrintFormula(out);
-
-            return out.str();
+            catch (FormulaError &e) {
+                return e;
+            }
         }
 
         std::vector <Position> GetReferencedCells() const override {
             std::vector <Position> cells;
-            for (const auto &cell: ast_.GetCells()) {
-
+            for (auto cell: ast_.GetCells()) {
                 if (cell.IsValid()) {
                     cells.push_back(cell);
-                } else {
-                    continue;
                 }
             }
+            cells.resize(std::unique(cells.begin(), cells.end()) - cells.begin());
             return cells;
         }
 
+        std::string GetExpression() const override {
+            std::ostringstream result;
+            ast_.PrintFormula(result);
+            return result.str();
+        }
+
     private:
-        FormulaAST ast_;
+        const FormulaAST ast_;
     };
 
 }
 
 std::unique_ptr <FormulaInterface> ParseFormula(std::string expression) {
-    return std::make_unique<Formula>(std::move(expression));
+    try {
+        return std::make_unique<Formula>(std::move(expression));
+    }
+    catch (...) {
+        throw FormulaException("");
+    }
 }
