@@ -7,7 +7,6 @@
 #include <functional>
 #include <forward_list>
 
-
 namespace ASTImpl {
     class Expr;
 }

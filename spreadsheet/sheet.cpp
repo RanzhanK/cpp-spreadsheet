@@ -1,13 +1,11 @@
-#include "sheet.h"
-
 #include "cell.h"
+#include "sheet.h"
 #include "common.h"
 
 #include <iostream>
 #include <optional>
 #include <algorithm>
 #include <functional>
-
 
 using namespace std::literals;
 

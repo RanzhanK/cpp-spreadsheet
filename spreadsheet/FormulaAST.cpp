@@ -3,7 +3,6 @@
 #include "FormulaParser.h"
 #include "FormulaBaseListener.h"
 
-
 #include <cmath>
 #include <memory>
 #include <sstream>
