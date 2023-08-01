@@ -11,7 +11,7 @@ class Sheet;
 
 class Cell : public CellInterface {
 public:
-    Cell(Sheet &sheet);
+    explicit Cell(Sheet &sheet);
 
     ~Cell();
 
